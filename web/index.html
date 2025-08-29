@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Proton</title>
+    <script type="text/javascript" src="/eel.js"></script>
+    <script defer src="main.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f5f7fa;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            text-align: center;
+        }
+
+        h1 {
+            color: #0056d6;
+        }
+
+        #chat-box {
+            width: 400px;
+            height: 300px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            padding: 10px;
+            overflow-y: auto;
+            margin: 20px auto;
+            background: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+
+        .user-msg {
+            background: #007bff;
+            color: white;
+            margin: 5px;
+            padding: 8px;
+            border-radius: 10px;
+            text-align: right;
+        }
+
+        .app-msg {
+            background: #e5e5e5;
+            color: black;
+            margin: 5px;
+            padding: 8px;
+            border-radius: 10px;
+            text-align: left;
+        }
+
+        #mic-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        #mic-button:hover {
+            background: #0056d6;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>PROTON Welcomes You!</h1>
+        <div id="chat-box"></div>
+        <button id="mic-button">🎤</button>
+    </div>
+</body>
+</html>
