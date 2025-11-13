@@ -2,19 +2,25 @@ import eel
 import speech_recognition as sr
 import threading
 import pyttsx3
-from gesture_control import GestureController  # <-- IMPORT GESTURE CONTROL
+import pyautogui
+import time
+from gesture_control import GestureController
 
 gesture_running = False
 gesture_controller = None
 engine = pyttsx3.init()
 
-# --- Speak Function ---
+# ========================= SPEECH =========================
 def speak(text):
+    """Speak text using pyttsx3."""
+    print(f"Proton: {text}")
     engine.say(text)
     engine.runAndWait()
 
-# --- Start Gesture Navigation ---
+
+# ========================= GESTURE CONTROL =========================
 def start_gesture_navigation():
+    """Starts gesture control in a background thread."""
     global gesture_running, gesture_controller
     if gesture_running:
         msg = "Gesture navigation is already running."
@@ -29,18 +35,24 @@ def start_gesture_navigation():
 
     def run_gesture():
         global gesture_running, gesture_controller
-        gesture_controller = GestureController()
-        gesture_controller.start()
-        # Reset state when window closes
-        gesture_running = False
-        gesture_controller = None
-        eel.addAppMsg("Gesture navigation stopped.")   # <-- only final confirmation
-        speak("Gesture navigation stopped.")
+        try:
+            gesture_controller = GestureController()
+            gesture_controller.start()
+        except Exception as e:
+            error_msg = f"Gesture navigation stopped due to error: {e}"
+            eel.addAppMsg(error_msg)
+            speak("An error occurred while running gesture navigation.")
+        finally:
+            gesture_running = False
+            gesture_controller = None
+            eel.addAppMsg("Gesture navigation stopped.")
+            speak("Gesture navigation stopped.")
 
     threading.Thread(target=run_gesture, daemon=True).start()
 
-# --- Stop Gesture Navigation ---
+
 def stop_gesture_navigation():
+    """Stops gesture navigation."""
     global gesture_running, gesture_controller
     if not gesture_running:
         msg = "Gesture navigation is not running."
@@ -49,38 +61,71 @@ def stop_gesture_navigation():
         return
 
     if gesture_controller:
-        eel.addAppMsg("Stopping gesture navigation...")   # <-- shown first
-        speak("Stopping gesture navigation")
-        gesture_controller.stop()  # This will eventually trigger "stopped" in run_gesture()
+        eel.addAppMsg("Stopping gesture navigation...")
+        speak("Stopping gesture navigation.")
+        gesture_controller.stop()
 
     gesture_running = False
     gesture_controller = None
 
-# --- Handle Commands ---
+
+# ========================= FEATURES =========================
+def take_screenshot():
+    """Takes a screenshot and saves it with a timestamp."""
+    timestamp = time.strftime("%Y%m%d_%H%M%S")
+    filename = f"screenshot_{timestamp}.png"
+    pyautogui.screenshot(filename)
+    eel.addAppMsg(f"📸 Screenshot saved as {filename}")
+    speak("Screenshot captured and saved.")
+
+
+# ========================= COMMAND HANDLER =========================
 def process_command(command):
-    command = command.lower()
+    """Process user’s voice commands."""
+    command = command.lower().strip()
+    print(f"Processing Command: {command}")
+
     if "hello proton" in command:
         response = "Hello there! Nice to see you."
         eel.addAppMsg(response)
         speak(response)
+
     elif "start gesture navigation" in command:
         start_gesture_navigation()
+
     elif "stop gesture navigation" in command:
         stop_gesture_navigation()
-    else:
-        response = "I am not functioned to do this."
+
+    elif "zoom in" in command:
+        response = "You can zoom in by bringing your thumb and index finger closer together."
         eel.addAppMsg(response)
         speak(response)
 
-# --- Microphone Listener ---
+    elif "zoom out" in command:
+        response = "You can zoom out by moving your thumb and index finger apart."
+        eel.addAppMsg(response)
+        speak(response)
+
+    elif "take screenshot" in command or "capture screen" in command:
+        take_screenshot()
+
+    else:
+        response = "I'm not programmed to do that yet."
+        eel.addAppMsg(response)
+        speak(response)
+
+
+# ========================= VOICE INPUT =========================
 @eel.expose
 def mic_triggered():
-    print("Mic Triggered...")
+    """Listens for voice input and processes it."""
+    print("🎤 Mic Triggered...")
     r = sr.Recognizer()
     with sr.Microphone() as source:
-        eel.addAppMsg("Listening... 🎤")
+        eel.addAppMsg("Listening...")
         speak("Listening")
         audio = r.listen(source)
+
     try:
         text = r.recognize_google(audio)
         print(f"User said: {text}")
@@ -93,16 +138,23 @@ def mic_triggered():
         eel.addAppMsg("Speech service error.")
         speak("Speech service error.")
 
-# --- Greet User After Page Load ---
+
+# ========================= INITIAL GREETING =========================
 @eel.expose
 def greet_user():
-    greeting = "Hello! I am Proton. How may I help you?"
+    greeting = "Hello! I am Proton. How can I help you?"
     eel.addAppMsg(greeting)
     speak(greeting)
 
-# --- Start App ---
+
+# ========================= APP ENTRY =========================
 class ChatBot:
     @staticmethod
     def start():
         eel.init("../web")
         eel.start("index.html", size=(1000, 600))
+
+
+# ========================= MAIN =========================
+if __name__ == "__main__":
+    ChatBot.start()
